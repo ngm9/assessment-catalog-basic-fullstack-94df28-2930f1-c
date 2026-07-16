@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  mongodb:
+    image: mongo
+    container_name: utkrusht_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: utkrusht
+      MONGO_INITDB_ROOT_PASSWORD: utkrushtpass
+      MONGO_INITDB_DATABASE: utkrusht_assessments
+    volumes:
+      - ./init_database.js:/docker-entrypoint-initdb.d/init_database.js:ro
+
+  backend:
+    image: node
+    container_name: utkrusht_backend
+    restart: unless-stopped
+    working_dir: /usr/src/app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/usr/src/app
+    depends_on:
+      - mongodb
+
+  frontend:
+    image: node
+    container_name: utkrusht_frontend
+    restart: unless-stopped
+    working_dir: /usr/src/app
+    command: sh -c "npm install && npm start"
+    ports:
+      - "3000:3000"
+    environment:
+      - BROWSER=none
+      - CI=false
+    volumes:
+      - ./frontend:/usr/src/app
+    depends_on:
+      - backend
